@@ -1,5 +1,8 @@
 let allPokemons = [];
 let validPokemonTypes = []; // cache de tipos válidos
+let currentPage = 1;
+let pokemonsPerPage = 18;
+let totalPokemons = 0;
 
 const getPokemonData = (pokemons) => {
     return pokemons.map(pokemon => ({
@@ -26,11 +29,12 @@ const loadValidPokemonTypes = async () => {
     return data ? data.results.map(t => t.name.toLowerCase()) : [];
 }
 
-const fetchPokemonsFromAPI = async () => {
-    const data = await fetchFromAPI('https://pokeapi.co/api/v2/pokemon?limit=10&offset=0.');
+const fetchPokemonsFromAPI = async (offset = 0) => {
+    const data = await fetchFromAPI(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonsPerPage}&offset=${offset}`);
     if (!data) throw new Error('Failed to fetch initial pokemons');
 
     const pokemonsList = data.results;
+    totalPokemons = data.count; // armazena o total para calcular páginas
 
     const pokemonsData = await Promise.all(
         pokemonsList.map(pokemon => fetch(pokemon.url).then(r => r.json()))
@@ -100,6 +104,111 @@ const searchRemotely = async (term) => {
     }
 }
 
+
+//PAGINAÇÃO
+const getTotalPages = () => Math.ceil(totalPokemons / pokemonsPerPage);
+
+// Função para atualizar a UI de paginação (botões e indicadores de página)
+const updatePaginationsBtnsStyles = () => {
+    const totalPages = getTotalPages();
+    const prevBtn = document.querySelector('.pagination button:first-child');
+    const nextBtn = document.querySelector('.pagination button:last-child');
+    const pageSpans = document.querySelectorAll('.pagination .page');
+
+    // desabilita botão anterior se está na primeira página
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+
+    // desabilita botão próximo se está na última página
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+
+    // atualiza a classe 'active' nos indicadores de página
+    pageSpans.forEach((span) => {
+        span.classList.toggle('active', parseInt(span.textContent) === currentPage);
+    });
+}
+
+// Função para renderizar indicadores de página dinamicamente
+const renderPaginationIndicators = () => {
+    const totalPages = getTotalPages();
+
+    const pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+
+    // remove os indicadores antigos
+    const oldPageSpans = pagination.querySelectorAll('.page, .pagination-dots');
+    oldPageSpans.forEach(span => span.remove());
+
+    const nextBtn = pagination.querySelector('button:last-child');
+    
+    // lógica para mostrar até 3 indicadores
+    const maxVisible = 3;
+    let pagesToShow = [];
+
+    if (totalPages <= maxVisible) {
+        // se total de páginas é <= 3, mostra todas
+        let pagesToShow = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pagesToShow.push(i);
+        }
+    } else {
+        // lógica para mostrar página anterior, atual e próxima (ou ajustar nas extremidades)
+        const start = Math.max(1, currentPage - 1);
+        const end = Math.min(totalPages, currentPage + 1);
+
+        if (start > 1) {
+            pagesToShow.push('dots-before');
+        }
+
+        for (let i = start; i <= end; i++) {
+            pagesToShow.push(i);
+        }
+
+        if (end < totalPages) {
+            pagesToShow.push('dots-after');
+        }
+
+        console.log('Pages to show:', pagesToShow);
+    }
+
+    // cria os indicadores dinamicamente (inserir antes do botão "Próximo")
+    pagesToShow.forEach(pageNum => {
+        let elem;
+        if (pageNum === 'dots-before' || pageNum === 'dots-after') {
+            elem = document.createElement('span');
+            elem.className = 'pagination-dots';
+            elem.textContent = '...';
+        } else {
+            elem = document.createElement('span');
+            elem.className = 'page';
+            if (pageNum === currentPage) elem.classList.add('active');
+            elem.textContent = pageNum;
+            elem.addEventListener('click', () => goToPage(pageNum));
+        }
+        nextBtn.parentNode.insertBefore(elem, nextBtn);
+    });
+}
+
+//disparado a cada clique de paginação
+const goToPage = async (pageNumber) => {
+    const totalPages = getTotalPages();
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+
+    currentPage = pageNumber;
+    const offset = (currentPage - 1) * pokemonsPerPage;
+
+    try {
+        const { pokemonsData } = await fetchPokemonsFromAPI(offset);
+        const pokemonsWithData = getPokemonData(pokemonsData);
+        renderPokemonsGrid(pokemonsWithData);
+        renderPaginationIndicators();
+        updatePaginationsBtnsStyles();
+    } catch (error) {
+        console.error('Error changing page:', error);
+    }
+}
+
+
+
 const handlePageLoad = async () => {
 
     try {
@@ -113,9 +222,17 @@ const handlePageLoad = async () => {
 
         allPokemons = pokemonsWithDataAndImage;
         renderPokemonsGrid(allPokemons);
+        renderPaginationIndicators();
+        updatePaginationsBtnsStyles();
 
         const searchInput = document.querySelector('.search-container input');
         const searchBtn = document.querySelector('.search-btn');
+
+        const prevBtn = document.querySelector('.pagination button:first-child');
+        const nextBtn = document.querySelector('.pagination button:last-child');
+
+        if (prevBtn) prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
 
         if (searchBtn && searchInput) {
             const runSearch = async () => {
