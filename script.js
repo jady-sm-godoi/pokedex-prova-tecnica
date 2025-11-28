@@ -37,7 +37,15 @@ const handlePageLoad = async () => {
         console.log("list pokemons:", pokemonsList);
         console.log("list dados necessarios dos pokemons:", pokemonsWithDataAndImage);
 
-
+        document.querySelector('.grid').innerHTML = pokemonsWithDataAndImage.map(pokemon => `
+            <div class="card">
+                <p class="type">${pokemon.types.join(', ')}</p>
+                <p class="id">#${String(pokemon.id).padStart(3, '0')}</p>
+                <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
+                <p class="name">${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
+            </div>
+        `).join('');
+        
     } catch (error) {
         //tratar erro melhor em tela
         console.error("Error fetching pokemons from API:", error);
