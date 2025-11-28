@@ -108,7 +108,6 @@ const searchRemotely = async (term) => {
 //PAGINAÇÃO
 const getTotalPages = () => Math.ceil(totalPokemons / pokemonsPerPage);
 
-// Função para atualizar a UI de paginação (botões e indicadores de página)
 const updatePaginationsBtnsStyles = () => {
     const totalPages = getTotalPages();
     const prevBtn = document.querySelector('.pagination button:first-child');
@@ -127,50 +126,7 @@ const updatePaginationsBtnsStyles = () => {
     });
 }
 
-// Função para renderizar indicadores de página dinamicamente
-const renderPaginationIndicators = () => {
-    const totalPages = getTotalPages();
-
-    const pagination = document.querySelector('.pagination');
-    if (!pagination) return;
-
-    // remove os indicadores antigos
-    const oldPageSpans = pagination.querySelectorAll('.page, .pagination-dots');
-    oldPageSpans.forEach(span => span.remove());
-
-    const nextBtn = pagination.querySelector('button:last-child');
-    
-    // lógica para mostrar até 3 indicadores
-    const maxVisible = 3;
-    let pagesToShow = [];
-
-    if (totalPages <= maxVisible) {
-        // se total de páginas é <= 3, mostra todas
-        let pagesToShow = [];
-        for (let i = 1; i <= totalPages; i++) {
-            pagesToShow.push(i);
-        }
-    } else {
-        // lógica para mostrar página anterior, atual e próxima (ou ajustar nas extremidades)
-        const start = Math.max(1, currentPage - 1);
-        const end = Math.min(totalPages, currentPage + 1);
-
-        if (start > 1) {
-            pagesToShow.push('dots-before');
-        }
-
-        for (let i = start; i <= end; i++) {
-            pagesToShow.push(i);
-        }
-
-        if (end < totalPages) {
-            pagesToShow.push('dots-after');
-        }
-
-        console.log('Pages to show:', pagesToShow);
-    }
-
-    // cria os indicadores dinamicamente (inserir antes do botão "Próximo")
+const constructorPaginationButtons = (pagesToShow, nextBtn) => {
     pagesToShow.forEach(pageNum => {
         let elem;
         if (pageNum === 'dots-before' || pageNum === 'dots-after') {
@@ -186,6 +142,45 @@ const renderPaginationIndicators = () => {
         }
         nextBtn.parentNode.insertBefore(elem, nextBtn);
     });
+}
+
+const renderPaginationIndicators = () => {
+    const totalPages = getTotalPages();
+
+    const pagination = document.querySelector('.pagination');
+    if (!pagination) return;
+
+    // remove os indicadores antigos
+    const oldPageSpans = pagination.querySelectorAll('.page, .pagination-dots');
+    oldPageSpans.forEach(span => span.remove());
+
+    const nextBtn = pagination.querySelector('button:last-child');
+    
+    const maxVisibleIndicators = 3;
+    let pagesToShow = [];
+
+    if (totalPages <= maxVisibleIndicators) {
+        for (let i = 1; i <= totalPages; i++) {
+            pagesToShow.push(i);
+        }
+    } else {
+        const start = Math.max(1, currentPage - 1);
+        const end = Math.min(totalPages, currentPage + 1);
+
+        if (start > 1) {
+            pagesToShow.push('dots-before');
+        }
+
+        for (let i = start; i <= end; i++) {
+            pagesToShow.push(i);
+        }
+
+        if (end < totalPages) {
+            pagesToShow.push('dots-after');
+        }
+    }
+
+    constructorPaginationButtons(pagesToShow, nextBtn);
 }
 
 //disparado a cada clique de paginação
@@ -207,8 +202,6 @@ const goToPage = async (pageNumber) => {
     }
 }
 
-
-
 const handlePageLoad = async () => {
 
     try {
@@ -224,15 +217,15 @@ const handlePageLoad = async () => {
         renderPokemonsGrid(allPokemons);
         renderPaginationIndicators();
         updatePaginationsBtnsStyles();
-
-        const searchInput = document.querySelector('.search-container input');
-        const searchBtn = document.querySelector('.search-btn');
-
+        
         const prevBtn = document.querySelector('.pagination button:first-child');
         const nextBtn = document.querySelector('.pagination button:last-child');
-
+        
         if (prevBtn) prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
         if (nextBtn) nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+        
+        const searchInput = document.querySelector('.search-container input');
+        const searchBtn = document.querySelector('.search-btn');
 
         if (searchBtn && searchInput) {
             const runSearch = async () => {
