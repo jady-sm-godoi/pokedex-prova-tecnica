@@ -10,39 +10,33 @@ const getPokemonData = (pokemons) => {
     }));
 }
 
-// Carrega todos os tipos válidos de pokémons da API
-const loadValidPokemonTypes = async () => {
+const fetchFromAPI = async (url) => {
     try {
-        const resp = await fetch('https://pokeapi.co/api/v2/type');
-        if (!resp.ok) return [];
-        const data = await resp.json();
-
-        return data.results.map(t => t.name.toLowerCase());
-        
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        return await resp.json();
     } catch (err) {
-        console.error('Error loading pokemon types:', err);
-        return [];
+        console.error('Error fetching from API:', err);
+        return null;
     }
 }
 
+const loadValidPokemonTypes = async () => {
+    const data = await fetchFromAPI('https://pokeapi.co/api/v2/type');
+    return data ? data.results.map(t => t.name.toLowerCase()) : [];
+}
+
 const fetchPokemonsFromAPI = async () => {
-    try {
-        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10&offset=0.');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const {results: pokemonsList} = await response.json();
+    const data = await fetchFromAPI('https://pokeapi.co/api/v2/pokemon?limit=10&offset=0.');
+    if (!data) throw new Error('Failed to fetch initial pokemons');
 
-        const pokemonsData = await Promise.all(
-            pokemonsList.map(pokemon => fetch(pokemon.url).then(r => r.json()))
-        );
+    const pokemonsList = data.results;
 
-        return { pokemonsList, pokemonsData };
-    } catch (error) {
-        console.error("Error fetching pokemons from API:", error);
-        throw error;
-    }
+    const pokemonsData = await Promise.all(
+        pokemonsList.map(pokemon => fetch(pokemon.url).then(r => r.json()))
+    );
+
+    return { pokemonsList, pokemonsData };
 }
 
 const renderPokemonsGrid = (pokemons) => {
@@ -68,22 +62,20 @@ const searchRemotely = async (term) => {
     const isNumericSearch = !Number.isNaN(asNumber);
 
     try {
-        //se o termo for numérico, busca por ID
+        // Estratégia 1: se o termo for numérico, busca por ID
         if (isNumericSearch) {
-            const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${asNumber}`);
-            if (resp.ok) {
-                const data = await resp.json();
+            const data = await fetchFromAPI(`https://pokeapi.co/api/v2/pokemon/${asNumber}`);
+            if (data) {
                 const [processed] = getPokemonData([data]);
                 return [processed];
             }
             return [];
         }
 
-        // se o termo for palavra e está na lista de tipos, busca por tipo
+        // Estratégia 2: se o termo for palavra e está na lista de tipos, busca por tipo
         if (validPokemonTypes.includes(cleaned)) {
-            const resp = await fetch(`https://pokeapi.co/api/v2/type/${cleaned}`);
-            if (!resp.ok) return [];
-            const data = await resp.json();
+            const data = await fetchFromAPI(`https://pokeapi.co/api/v2/type/${cleaned}`);
+            if (!data) return [];
 
             const list = data.pokemon.map(poke => poke.pokemon).slice(0, 20);
 
@@ -94,10 +86,9 @@ const searchRemotely = async (term) => {
             return getPokemonData(pokemonsData);
         }
 
-        // se o termo for palavra e não está em tipos, busca por nome
-        const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${cleaned}`);
-        if (resp.ok) {
-            const data = await resp.json();
+        // Estratégia 3: se o termo for palavra e não está em tipos, busca por nome
+        const data = await fetchFromAPI(`https://pokeapi.co/api/v2/pokemon/${cleaned}`);
+        if (data) {
             const [processed] = getPokemonData([data]);
             return [processed];
         }
