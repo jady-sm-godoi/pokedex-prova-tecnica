@@ -1,8 +1,11 @@
+
 let allPokemons = [];
-let validPokemonTypes = []; // cache de tipos válidos
+let validPokemonTypes = [];
 let currentPage = 1;
 let pokemonsPerPage = 18;
 let totalPokemons = 0;
+let searchTerm = '';
+let searchResults = [];
 
 const getPokemonData = (pokemons) => {
     return pokemons.map(pokemon => ({
@@ -145,7 +148,12 @@ const constructorPaginationButtons = (pagesToShow, nextBtn) => {
 }
 
 const renderPaginationIndicators = () => {
-    const totalPages = getTotalPages();
+    let totalPages;
+    if (searchTerm && searchResults.length > pokemonsPerPage) {
+        totalPages = Math.ceil(searchResults.length / pokemonsPerPage);
+    } else {
+        totalPages = getTotalPages();
+    }
 
     const pagination = document.querySelector('.pagination');
     if (!pagination) return;
@@ -185,20 +193,35 @@ const renderPaginationIndicators = () => {
 
 //disparado a cada clique de paginação
 const goToPage = async (pageNumber) => {
-    const totalPages = getTotalPages();
+    let totalPages;
+    if (searchTerm && searchResults.length > pokemonsPerPage) {
+        totalPages = Math.ceil(searchResults.length / pokemonsPerPage);
+    } else {
+        totalPages = getTotalPages();
+    }
     if (pageNumber < 1 || pageNumber > totalPages) return;
 
     currentPage = pageNumber;
-    const offset = (currentPage - 1) * pokemonsPerPage;
 
-    try {
-        const { pokemonsData } = await fetchPokemonsFromAPI(offset);
-        const pokemonsWithData = getPokemonData(pokemonsData);
-        renderPokemonsGrid(pokemonsWithData);
+    if (searchTerm && searchResults.length > pokemonsPerPage) {
+        // Paginação local dos resultados da busca
+        const startIdx = (currentPage - 1) * pokemonsPerPage;
+        const endIdx = startIdx + pokemonsPerPage;
+        renderPokemonsGrid(searchResults.slice(startIdx, endIdx));
         renderPaginationIndicators();
         updatePaginationsBtnsStyles();
-    } catch (error) {
-        console.error('Error changing page:', error);
+    } else {
+        // Paginação normal
+        const offset = (currentPage - 1) * pokemonsPerPage;
+        try {
+            const { pokemonsData } = await fetchPokemonsFromAPI(offset);
+            const pokemonsWithData = getPokemonData(pokemonsData);
+            renderPokemonsGrid(pokemonsWithData);
+            renderPaginationIndicators();
+            updatePaginationsBtnsStyles();
+        } catch (error) {
+            console.error('Error changing page:', error);
+        }
     }
 }
 
@@ -232,18 +255,38 @@ const handlePageLoad = async () => {
                 const term = searchInput.value.trim();
 
                 if (!term) {
+                    searchTerm = '';
+                    searchResults = [];
+                    currentPage = 1;
                     renderPokemonsGrid(allPokemons);
+                    const pagination = document.querySelector('.pagination');
+                    if (pagination) pagination.style.display = '';
+                    renderPaginationIndicators();
+                    updatePaginationsBtnsStyles();
                     return;
                 }
 
+                searchTerm = term;
                 const remoteResults = await searchRemotely(term);
+                searchResults = remoteResults;
+                currentPage = 1;
+                const pagination = document.querySelector('.pagination');
                 if (remoteResults.length > 0) {
-                    renderPokemonsGrid(remoteResults);
+                    if (remoteResults.length > pokemonsPerPage) {
+                        pagination.style.display = '';
+                        renderPokemonsGrid(remoteResults.slice(0, pokemonsPerPage));
+                        renderPaginationIndicators();
+                        updatePaginationsBtnsStyles();
+                    } else {
+                        renderPokemonsGrid(remoteResults);
+                        pagination.style.display = 'none';
+                    }
                     return;
                 }
 
                 //todo: fazer uma mensagem de "nenhum resultado encontrado" em tela
                 renderPokemonsGrid([]);
+                if (pagination) pagination.style.display = 'none';
             }
 
             searchBtn.addEventListener('click', runSearch);
