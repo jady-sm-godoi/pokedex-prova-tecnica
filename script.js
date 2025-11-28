@@ -43,6 +43,33 @@ const renderPokemonsGrid = (pokemons) => {
     `).join('');
 }
 
+const searchPokemons = (pokemons, term) => {
+    if (!term || !term.toString().trim()) return pokemons;
+
+    const normalized = term.toString().trim().toLowerCase();
+    //regex para remover # no termo de busca
+    const cleaned = normalized.replace(/^#/, ''); 
+
+    const asNumber = Number(cleaned);
+    const isNumericSearch = cleaned !== '' && !Number.isNaN(asNumber);
+
+    return pokemons.filter(poke => {
+        // filtro nome
+        if (poke.name && poke.name.toLowerCase().includes(cleaned)) return true;
+
+        // filtro pelo id
+        if (isNumericSearch) {
+            if (poke.id === asNumber) return true;
+            if (String(poke.id).padStart(3, '0') === cleaned) return true;
+        }
+
+        // filtro pelo tipo
+        if (poke.types && poke.types.some(t => t.toLowerCase().includes(cleaned))) return true;
+
+        return false;
+    });
+}
+
 const handlePageLoad = async () => {
 
     try {
@@ -52,6 +79,22 @@ const handlePageLoad = async () => {
 
         allPokemons = pokemonsWithDataAndImage;
         renderPokemonsGrid(allPokemons);
+
+        const searchInput = document.querySelector('.search-container input');
+        const searchBtn = document.querySelector('.search-btn');
+
+        if (searchBtn && searchInput) {
+            const runSearch = () => {
+                const term = searchInput.value;
+                const results = searchPokemons(allPokemons, term);
+                renderPokemonsGrid(results);
+            }
+
+            searchBtn.addEventListener('click', runSearch);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') runSearch();
+            });
+        }
 
         // console.log("list pokemons:", pokemonsList);
         // console.log("list dados necessarios dos pokemons:", pokemonsWithDataAndImage);
