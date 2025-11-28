@@ -9,21 +9,40 @@
 </head>
 
 <body>
+    <!-- MODAL MENU MOBILE -->
+    <div class="mobile-menu-overlay"></div>
 
-    <!-- NAVBAR -->
-    <header class="navbar">
-        <img src="assets/pokedex-logo.png" alt="PokeDex Logo" class="logo">
-        <nav>
+    <aside class="mobile-menu">
+        <button class="close-menu">×</button>
+
+        <nav class="mobile-nav">
             <a class="nav-menu active" href="#">Home</a>
             <a class="nav-menu" href="#">Pokédex</a>
         </nav>
+    </aside>
+
+    <!-- NAVBAR -->
+    <header class="navbar-wrapper">
+        <div class="navbar">
+            <img src="assets/pokedex-logo.png" alt="PokeDex Logo" class="logo">
+            <button class="hamburger-btn">
+                <div></div>
+                <div></div>
+                <div></div>
+            </button>
+
+            <nav>
+                <a class="nav-menu active" href="#">Home</a>
+                <a class="nav-menu" href="#">Pokédex</a>
+            </nav>
+        </div>
     </header>
 
 
     <!-- SEARCH -->
     <section class="search-wrapper">
         <div class="search-container">
-            <input type="text" placeholder="Faça uma busca pelo nome do pokémon">
+            <input type="text" placeholder="Buscar nome ou tipo">
             <button class="search-btn">
                 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -36,7 +55,7 @@
 
 
     <!-- GRID DE CARDS -->
-    <section class="grid">
+    <section class="grid-pokemon">
 
 
     </section>

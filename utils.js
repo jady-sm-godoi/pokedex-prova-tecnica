@@ -1,15 +1,19 @@
 // Funções relacionadas a renderização e UI
 
 export const renderPokemonsGrid = (pokemons) => {
-    const grid = document.querySelector('.grid');
+    const grid = document.querySelector('.grid-pokemon');
     if (!grid) return;
 
     grid.innerHTML = pokemons.map(pokemon => `
         <div class="card">
-            <p class="type">${pokemon.types.join(', ')}</p>
-            <p class="id">#${String(pokemon.id).padStart(3, '0')}</p>
-            <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
-            <p class="name">${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
+            <div class="info-top">
+                <p class="type">${pokemon.types.join(', ')}</p>
+                <p class="id">#${String(pokemon.id).padStart(3, '0')}</p>
+            </div>
+            <div class="image-container">
+                <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
+                <p class="name">${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
+            </div>
         </div>
     `).join('');
 }
@@ -108,3 +112,24 @@ export const togglePaginationVisibility = (show) => {
         pagination.style.display = show ? '' : 'none';
     }
 }
+
+// Mobile menu functionality
+const hamburgerBtn = document.querySelector(".hamburger-btn");
+const mobileMenu = document.querySelector(".mobile-menu");
+const overlay = document.querySelector(".mobile-menu-overlay");
+const closeMenu = document.querySelector(".close-menu");
+
+hamburgerBtn.addEventListener("click", () => {
+    mobileMenu.classList.add("active");
+    overlay.classList.add("active");
+});
+
+closeMenu.addEventListener("click", () => {
+    mobileMenu.classList.remove("active");
+    overlay.classList.remove("active");
+});
+
+overlay.addEventListener("click", () => {
+    mobileMenu.classList.remove("active");
+    overlay.classList.remove("active");
+});
