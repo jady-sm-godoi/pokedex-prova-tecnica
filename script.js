@@ -1,3 +1,5 @@
+let allPokemons = [];
+
 const getPokemonData = (pokemons) => {
     return pokemons.map(pokemon => ({
         name: pokemon.name,
@@ -27,6 +29,20 @@ const fetchPokemonsFromAPI = async () => {
     }
 }
 
+const renderPokemonsGrid = (pokemons) => {
+    const grid = document.querySelector('.grid');
+    if (!grid) return;
+
+    grid.innerHTML = pokemons.map(pokemon => `
+        <div class="card">
+            <p class="type">${pokemon.types.join(', ')}</p>
+            <p class="id">#${String(pokemon.id).padStart(3, '0')}</p>
+            <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
+            <p class="name">${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
+        </div>
+    `).join('');
+}
+
 const handlePageLoad = async () => {
 
     try {
@@ -34,18 +50,11 @@ const handlePageLoad = async () => {
 
         const pokemonsWithDataAndImage = getPokemonData(pokemonsData);
 
-        console.log("list pokemons:", pokemonsList);
-        console.log("list dados necessarios dos pokemons:", pokemonsWithDataAndImage);
+        allPokemons = pokemonsWithDataAndImage;
+        renderPokemonsGrid(allPokemons);
 
-        document.querySelector('.grid').innerHTML = pokemonsWithDataAndImage.map(pokemon => `
-            <div class="card">
-                <p class="type">${pokemon.types.join(', ')}</p>
-                <p class="id">#${String(pokemon.id).padStart(3, '0')}</p>
-                <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
-                <p class="name">${pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</p>
-            </div>
-        `).join('');
-        
+        // console.log("list pokemons:", pokemonsList);
+        // console.log("list dados necessarios dos pokemons:", pokemonsWithDataAndImage);
     } catch (error) {
         //tratar erro melhor em tela
         console.error("Error fetching pokemons from API:", error);
