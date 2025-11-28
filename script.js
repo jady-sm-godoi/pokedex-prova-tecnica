@@ -1,3 +1,12 @@
+const getPokemonData = (pokemons) => {
+    return pokemons.map(pokemon => ({
+        name: pokemon.name,
+        id: pokemon.id,
+        types: pokemon.types.map(typeInfo => typeInfo.type.name),
+        imageUrl: pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default
+    }));
+}
+
 const handlePageLoad = async () => {
 
     try {
@@ -13,8 +22,9 @@ const handlePageLoad = async () => {
             pokemonsList.map(pokemon => fetch(pokemon.url).then(response => response.json()))
         );
 
-        console.log("pokemonsList", pokemonsList)
-        console.log("pokemonData:cada um", pokemonsData)
+        const pokemonsWithDataAndImages = getPokemonData(pokemonsData);
+
+        console.log("all", pokemonsWithDataAndImages);
 
 
     } catch (error) {
