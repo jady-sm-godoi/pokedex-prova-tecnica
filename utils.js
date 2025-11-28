@@ -14,6 +14,13 @@ export const renderPokemonsGrid = (pokemons) => {
     `).join('');
 }
 
+export const renderWarnningNoResults = () => {
+    const grid = document.querySelector('.grid');
+    if (!grid) return;
+
+    grid.innerHTML = `<h2 class="no-results">Não encontrei nenhum Pokémon com esse termo!</h2> `;
+}
+
 export const getTotalPages = (totalPokemons, pokemonsPerPage) => Math.ceil(totalPokemons / pokemonsPerPage);
 
 export const updatePaginationsBtnsStyles = (currentPage, totalPages) => {

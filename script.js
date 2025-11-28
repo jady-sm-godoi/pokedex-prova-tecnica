@@ -1,7 +1,8 @@
 
 import { getPokemonData, loadValidPokemonTypes, fetchPokemonsFromAPI, searchRemotely } from './api.js';
 import { 
-    renderPokemonsGrid, 
+    renderPokemonsGrid,
+    renderWarnningNoResults, 
     getTotalPages, 
     updatePaginationsBtnsStyles, 
     renderPaginationIndicators, 
@@ -16,9 +17,6 @@ let totalPokemons = 0;
 let searchTerm = '';
 let searchResults = [];
 
-const renderPokemonsGridWrapper = (pokemons) => {
-    renderPokemonsGrid(pokemons);
-}
 
 //PAGINAÇÃO
 const getTotalPagesLocal = () => getTotalPages(totalPokemons, pokemonsPerPage);
@@ -123,6 +121,7 @@ const handlePageLoad = async () => {
                 //todo: fazer uma mensagem de "nenhum resultado encontrado" em tela
                 renderPokemonsGrid([]);
                 togglePaginationVisibility(false);
+                renderWarnningNoResults();
             }
 
             searchBtn.addEventListener('click', runSearch);
@@ -131,8 +130,6 @@ const handlePageLoad = async () => {
             });
         }
 
-        // console.log("list pokemons:", pokemonsList);
-        // console.log("list dados necessarios dos pokemons:", pokemonsWithDataAndImage);
     } catch (error) {
         //tratar erro melhor em tela
         console.error("Error fetching pokemons from API:", error);
