@@ -1,4 +1,5 @@
 let allPokemons = [];
+let validPokemonTypes = []; // cache de tipos válidos
 
 const getPokemonData = (pokemons) => {
     return pokemons.map(pokemon => ({
@@ -7,6 +8,21 @@ const getPokemonData = (pokemons) => {
         types: pokemon.types.map(typeInfo => typeInfo.type.name),
         imageUrl: pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default
     }));
+}
+
+// Carrega todos os tipos válidos de pokémons da API
+const loadValidPokemonTypes = async () => {
+    try {
+        const resp = await fetch('https://pokeapi.co/api/v2/type');
+        if (!resp.ok) return [];
+        const data = await resp.json();
+
+        return data.results.map(t => t.name.toLowerCase());
+        
+    } catch (err) {
+        console.error('Error loading pokemon types:', err);
+        return [];
+    }
 }
 
 const fetchPokemonsFromAPI = async () => {
@@ -43,36 +59,63 @@ const renderPokemonsGrid = (pokemons) => {
     `).join('');
 }
 
-const searchPokemons = (pokemons, term) => {
-    if (!term || !term.toString().trim()) return pokemons;
 
-    const normalized = term.toString().trim().toLowerCase();
-    //regex para remover # no termo de busca
-    const cleaned = normalized.replace(/^#/, ''); 
+const searchRemotely = async (term) => {
+    const cleaned = term.toString().trim().toLowerCase().replace(/^#/, '');
+    if (!cleaned) return [];
 
     const asNumber = Number(cleaned);
-    const isNumericSearch = cleaned !== '' && !Number.isNaN(asNumber);
+    const isNumericSearch = !Number.isNaN(asNumber);
 
-    return pokemons.filter(poke => {
-        // filtro nome
-        if (poke.name && poke.name.toLowerCase().includes(cleaned)) return true;
-
-        // filtro pelo id
+    try {
+        //se o termo for numérico, busca por ID
         if (isNumericSearch) {
-            if (poke.id === asNumber) return true;
-            if (String(poke.id).padStart(3, '0') === cleaned) return true;
+            const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${asNumber}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                const [processed] = getPokemonData([data]);
+                return [processed];
+            }
+            return [];
         }
 
-        // filtro pelo tipo
-        if (poke.types && poke.types.some(t => t.toLowerCase().includes(cleaned))) return true;
+        // se o termo for palavra e está na lista de tipos, busca por tipo
+        if (validPokemonTypes.includes(cleaned)) {
+            const resp = await fetch(`https://pokeapi.co/api/v2/type/${cleaned}`);
+            if (!resp.ok) return [];
+            const data = await resp.json();
 
-        return false;
-    });
+            const list = data.pokemon.map(poke => poke.pokemon).slice(0, 20);
+
+            const pokemonsData = await Promise.all(
+                list.map(pokedata => fetch(pokedata.url).then(resp => resp.json()))
+            );
+
+            return getPokemonData(pokemonsData);
+        }
+
+        // se o termo for palavra e não está em tipos, busca por nome
+        const resp = await fetch(`https://pokeapi.co/api/v2/pokemon/${cleaned}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            const [processed] = getPokemonData([data]);
+            return [processed];
+        }
+
+        return [];
+    } catch (err) {
+        console.error('Error searching remotely:', err);
+        return [];
+    }
 }
 
 const handlePageLoad = async () => {
 
     try {
+        // Carrega tipos válidos no cache
+        validPokemonTypes = await loadValidPokemonTypes();
+        console.log('Valid pokemon types loaded:', validPokemonTypes.length, 'types');
+
         const { pokemonsList, pokemonsData } = await fetchPokemonsFromAPI();
 
         const pokemonsWithDataAndImage = getPokemonData(pokemonsData);
@@ -84,10 +127,22 @@ const handlePageLoad = async () => {
         const searchBtn = document.querySelector('.search-btn');
 
         if (searchBtn && searchInput) {
-            const runSearch = () => {
-                const term = searchInput.value;
-                const results = searchPokemons(allPokemons, term);
-                renderPokemonsGrid(results);
+            const runSearch = async () => {
+                const term = searchInput.value.trim();
+
+                if (!term) {
+                    renderPokemonsGrid(allPokemons);
+                    return;
+                }
+
+                const remoteResults = await searchRemotely(term);
+                if (remoteResults.length > 0) {
+                    renderPokemonsGrid(remoteResults);
+                    return;
+                }
+
+                //todo: fazer uma mensagem de "nenhum resultado encontrado" em tela
+                renderPokemonsGrid([]);
             }
 
             searchBtn.addEventListener('click', runSearch);
