@@ -1,0 +1,260 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background: #ffffff;
+    /* padding: 20px; */
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100px;
+    padding: 16px 8px; /* Top/Bottom Left/Right */
+
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.navbar .logo {
+    height: 35px;
+}
+
+.navbar nav {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+.navbar nav .nav-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 81px;
+    height: 32px;
+    padding: 8px;
+    gap: 8px;
+
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 100%;
+    color: #1E1E1E;
+    text-decoration: none;
+
+    border-radius: 8px;
+}
+
+.navbar nav .nav-menu.active {
+    background: #F5F5F5;
+}
+
+/* SEARCH */
+.search-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 720px;
+    min-width: 360px;
+    max-width: 720px;
+    height: 56px;
+    padding: 0px;
+    gap: 4px;
+
+    background: #F2F2F7;
+    border-radius: 28px;
+}
+
+.search-container input {
+    display: flex;
+    align-items: center;
+    width: 720px;
+    height: 56px;
+    padding-left: 45px;
+    gap: 4px;
+    border: none;
+
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px; /* Mantendo 16px como no original */
+    line-height: 24px;
+    color: #49454F;
+
+    background: transparent;
+}
+
+.search-container input::placeholder {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #49454F;
+}
+
+input:focus {
+    outline: none;
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    width: 48px;
+    height: 48px;
+
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* =========================== */
+/*        GRID RESPONSIVA      */
+/* =========================== */
+.grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+@media (max-width: 1024px) {
+
+    /* Tablets */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Tablets menores / celulares grandes */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .search-container input {
+        width: 80%;
+    }
+
+    .search-btn {
+        right: calc(10% + 20px);
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Celulares */
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    body {
+        padding: 10px;
+    }
+
+    .navbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .navbar nav a {
+        margin: 0 10px;
+    }
+
+    .search-container input {
+        width: 90%;
+    }
+
+    .search-btn {
+        right: calc(5% + 15px);
+    }
+}
+
+/* CARD */
+.card {
+    background: #eef4ff;
+    border-radius: 12px;
+    padding: 20px 10px;
+    text-align: center;
+    transition: .2s;
+}
+
+.card:hover {
+    transform: scale(1.03);
+}
+
+.card .type {
+    color: #3fa65a;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.card .id {
+    font-size: 13px;
+    color: #555;
+    margin-top: -2px;
+}
+
+.card img {
+    width: 90%;
+    margin: 10px auto;
+}
+
+.card .name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* PAGINAÇÃO */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 40px 0;
+}
+
+.pagination button {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+.page {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #e6e9f0;
+    cursor: pointer;
+}
+
+.page.active {
+    background: #111;
+    color: #fff;
+}
