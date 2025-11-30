@@ -27,7 +27,7 @@ body {
     justify-content: space-between;
     align-items: center;
     height: 100px;
-    padding: 16px 8px; /* Top/Bottom Left/Right */
+    padding: 16px 8px;
 
     margin-inline: 25px;
 }
@@ -107,7 +107,7 @@ body {
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
-    font-size: 16px; /* Mantendo 16px como no original */
+    font-size: 16px;
     line-height: 24px;
     color: #49454F;
 
